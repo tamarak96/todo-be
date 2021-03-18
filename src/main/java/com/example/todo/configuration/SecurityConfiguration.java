@@ -31,7 +31,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter{
 		.antMatchers("/admin").hasRole("ADMIN")
 		.antMatchers("/todos").hasAnyRole("ADMIN", "USER")
 		.antMatchers("/").hasAnyRole("ADMIN", "USER")
-		.and().formLogin();
+		.antMatchers("/sample").hasAnyRole("ADMIN", "USER")
+		.and().formLogin()
+		.and().cors().and().csrf().disable();
 	}
 	
 	@SuppressWarnings("deprecation")

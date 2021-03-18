@@ -17,8 +17,10 @@ public class MyUserDetails implements UserDetails{
 	private String password;
 	private Boolean active;
 	private List<GrantedAuthority> authorities;
+	private User user;
 	
 	public MyUserDetails(User user) {
+		this.user = user;
 		this.userName = user.getUserName();
 		this.password = user.getPassword();
 		this.active = user.getActive();
@@ -27,6 +29,14 @@ public class MyUserDetails implements UserDetails{
 				.collect(Collectors.toList());
 	}
 	
+	
+	public User getUser() {
+        return this.user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
