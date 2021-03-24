@@ -8,7 +8,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class TodoJSON implements Serializable{
+public class TodoJson implements Serializable{
 	
 	private static final long serialVersionUID = 1L;
 	

@@ -8,10 +8,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.example.todo.constants.Roles;
+
+@SuppressWarnings("deprecation")
 @EnableWebSecurity
 @Configuration
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter{
@@ -28,10 +29,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter{
 	@Override
 	protected void configure(HttpSecurity http) throws Exception{
 		http.authorizeRequests()
-		.antMatchers("/admin").hasRole("ADMIN")
-		.antMatchers("/todos").hasAnyRole("ADMIN", "USER")
-		.antMatchers("/").hasAnyRole("ADMIN", "USER")
-		.antMatchers("/sample").hasAnyRole("ADMIN", "USER")
+		.antMatchers("/admin").hasRole(Roles.ADMIN)
+		.antMatchers("/").hasAnyRole(Roles.ADMIN, Roles.USER)
 		.and().formLogin()
 		.and().cors().and().csrf().disable();
 	}
