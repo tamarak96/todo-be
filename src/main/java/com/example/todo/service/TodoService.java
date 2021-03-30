@@ -3,11 +3,10 @@ package com.example.todo.service;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.example.todo.exception.ActionNotAllowedException;
 import com.example.todo.exception.EntityNotPresentException;
-import com.example.todo.configuration.MyUserDetails;
 import com.example.todo.dao.TodoRepository;
 import com.example.todo.dao.UserRepository;
 
@@ -30,74 +29,76 @@ public class TodoService {
 	private UserRepository userRepo;
 	
 	public List<Todo> listAll(String username) throws EntityNotPresentException{
-		Optional<User> user  = userRepo.findByUserName(username);
-		if(!user.isPresent()) {
-			throw new EntityNotPresentException("User is not present");
-		}
-		return Optional.ofNullable(user.get().getTodos()).orElse(Collections.emptyList());
+		User user  = userRepo.findByUserName(username).orElseThrow(()->new EntityNotPresentException("User is not present"));
+	
+		return Optional.ofNullable(user.getTodos()).orElse(Collections.emptyList());
 	}
 	
-	public Todo save(TodoJson todoJson) {
-		MyUserDetails details = (MyUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+	public Todo save(TodoJson todoJson, String username) throws EntityNotPresentException {		
+		User user = userRepo.findByUserName(username).orElseThrow(()->new EntityNotPresentException("User is not present"));
 		
 		Todo todo = new Todo();
 		todo.setName(todoJson.getName());
-		
-		Optional<User> user = userRepo.findByUserName(details.getUsername());
-		if(user.isPresent()) {
-			todo.setUser(user.get());
-		}
+		todo.setUser(user);
 		return todoRepo.save(todo);
 	}
 	
-	public Todo update(TodoJson todoJson, Integer id) throws IllegalArgumentException, EntityNotPresentException{
+	public Todo update(TodoJson todoJson, Integer id, String username) throws IllegalArgumentException, EntityNotPresentException, ActionNotAllowedException{
 		if(id==null) {
 			throw new IllegalArgumentException("Id must not be null");
 		}
-		
+		User authenticatedUser  = userRepo.findByUserName(username).orElseThrow(()->new EntityNotPresentException("User is not present"));
 		Todo todo = todoRepo.findById(id).orElseThrow(()->new EntityNotPresentException("Todo is not present"));
+		
+		if(!authenticatedUser.equals(todo.getUser())) {
+			throw new ActionNotAllowedException("Action Not Allowed");
+		}
 		
 		todo.setName(todoJson.getName());
 		return todoRepo.save(todo);
 	}
 	
-	public Todo get(Integer id) throws EntityNotPresentException {
+	public Todo get(Integer id, String username) throws EntityNotPresentException, ActionNotAllowedException {
 		if(id==null) {
 			throw new IllegalArgumentException("Id must not be null");
 		}
-		return todoRepo.findById(id).orElseThrow(()->new EntityNotPresentException("Todo is not present"));
+		User authenticatedUser  = userRepo.findByUserName(username).orElseThrow(()->new EntityNotPresentException("User is not present"));
+		Todo todo = todoRepo.findById(id).orElseThrow(()->new EntityNotPresentException("Todo is not present"));
+		
+		if(!authenticatedUser.equals(todo.getUser())) {
+			throw new ActionNotAllowedException("Action Not Allowed");
+		}
+		return todo;
 	}
 	
-	public void delete(Integer id) throws IllegalArgumentException, EntityNotPresentException {
+	public void delete(Integer id, String username) throws IllegalArgumentException, EntityNotPresentException, ActionNotAllowedException {
 		if(id==null) {
 			throw new IllegalArgumentException("Id must not be null");
 		}
 		
+		User authenticatedUser  = userRepo.findByUserName(username).orElseThrow(()->new EntityNotPresentException("User is not present"));
 		Todo todo = todoRepo.findById(id).orElseThrow(()-> new EntityNotPresentException("Todo is not present"));
-		todo.setDeleted(true);
 		
+		if(!authenticatedUser.equals(todo.getUser())) {
+			throw new ActionNotAllowedException("Action Not Allowed");
+		}
+		
+		todo.setDeleted(true);
 		todoRepo.save(todo);
 	}
 	
 	public void asigneTodoToUser(Integer userId, Integer todoId) throws EntityNotPresentException {
-		Optional<User> user = userRepo.findById(userId);
-		Optional<Todo> todo = todoRepo.findById(todoId);
+		User user = userRepo.findById(userId).orElseThrow(()-> new EntityNotPresentException("User is not present"));
+		Todo todo = todoRepo.findById(todoId).orElseThrow(()-> new EntityNotPresentException("Todo is not present"));
 		
-		if(!user.isPresent() || !todo.isPresent()) {
-			throw new EntityNotPresentException("User/Todo not present");
-		}
-		
-		todo.get().setUser(user.get());
-		todoRepo.save(todo.get());
+		todo.setUser(user);
+		todoRepo.save(todo);
 		
 	}
 	
 	public List<Todo> getUserTodos(Integer userId) throws EntityNotPresentException {
-		Optional<User> user = userRepo.findById(userId);
-		if(!user.isPresent()) {
-			throw new EntityNotPresentException("User is not present");
-		}
-		return Optional.ofNullable(user.get().getTodos()).orElse(Collections.emptyList());
+		User user = userRepo.findById(userId).orElseThrow(()-> new EntityNotPresentException("User is not present"));
+		return Optional.ofNullable(user.getTodos()).orElse(Collections.emptyList());
 		
 	}
 }

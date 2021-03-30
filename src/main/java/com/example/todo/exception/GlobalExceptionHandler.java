@@ -11,16 +11,29 @@ import org.springframework.web.context.request.WebRequest;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 	
-	@ExceptionHandler(Exception.class)
-	public ResponseEntity<Object> handleEntityNotPresentException(Exception exception, WebRequest request){
+	@ExceptionHandler(EntityNotPresentException.class)
+	public ResponseEntity<Object> handleEntityNotPresentException(EntityNotPresentException exception, WebRequest request){
 		ErrorDetails errorDetails = new ErrorDetails(new Date(),exception.getMessage(), request.getDescription(false));
-		 if (exception instanceof EntityNotPresentException) {
 			 return new ResponseEntity<>(errorDetails,HttpStatus.NOT_FOUND);
-	        }
-		 if(exception instanceof IllegalArgumentException) {
-			 return new ResponseEntity<>(errorDetails,HttpStatus.BAD_REQUEST);
-		 }
+	}
+	
+	@ExceptionHandler(ActionNotAllowedException.class)
+	public ResponseEntity<Object> handleActionNotAllowedException(ActionNotAllowedException exception, WebRequest request){
+		ErrorDetails errorDetails = new ErrorDetails(new Date(),exception.getMessage(), request.getDescription(false));
+			 return new ResponseEntity<>(errorDetails,HttpStatus.METHOD_NOT_ALLOWED);
+	}
+	
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException exception, WebRequest request){
+		ErrorDetails errorDetails = new ErrorDetails(new Date(),exception.getMessage(), request.getDescription(false));		
+		 	return new ResponseEntity<>(errorDetails,HttpStatus.BAD_REQUEST);
+	}
+	
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<Object> handleInternalServerError(Exception exception, WebRequest request){
+		ErrorDetails errorDetails = new ErrorDetails(new Date(),exception.getMessage(), request.getDescription(false));	
 		return new ResponseEntity<>(errorDetails,HttpStatus.INTERNAL_SERVER_ERROR);
 	}
+
 
 }

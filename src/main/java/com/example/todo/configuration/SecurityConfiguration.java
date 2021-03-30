@@ -9,6 +9,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.example.todo.constants.Roles;
 
@@ -19,6 +22,19 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter{
 	
 	@Autowired
 	UserDetailsService userDetailsService;
+	
+	@Bean
+	public WebMvcConfigurer corsConfigurer() {
+		return new WebMvcConfigurer() {
+			@Override
+			public void addCorsMappings(CorsRegistry registry) {
+				registry.addMapping("/**")
+				.allowedMethods("GET", "POST", "PUT", "DELETE")
+				.allowedHeaders("*")
+				.allowedOrigins("http://localhost:3000");
+			}
+		};
+	}
 	
 	@Override
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception{
@@ -32,7 +48,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter{
 		.antMatchers("/admin").hasRole(Roles.ADMIN)
 		.antMatchers("/").hasAnyRole(Roles.ADMIN, Roles.USER)
 		.and().formLogin()
-		.and().cors().and().csrf().disable();
+		.and().cors().and().csrf().disable()
+		.addFilterAt(new CustomUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 	}
 	
 	@SuppressWarnings("deprecation")
