@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -44,12 +45,15 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter{
 	
 	@Override
 	protected void configure(HttpSecurity http) throws Exception{
-		http.authorizeRequests()
-		.antMatchers("/admin").hasRole(Roles.ADMIN)
-		.antMatchers("/").hasAnyRole(Roles.ADMIN, Roles.USER)
-		.and().formLogin()
-		.and().cors().and().csrf().disable()
-		.addFilterAt(new CustomUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+		   http
+           .csrf().disable()
+           .authorizeRequests()
+           .anyRequest().authenticated()
+           .and()
+           .httpBasic()
+           .and().addFilterAt(new CustomUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+		   http.cors().disable();
+		
 	}
 	
 	@SuppressWarnings("deprecation")

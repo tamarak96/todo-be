@@ -32,7 +32,7 @@ public class CustomUsernamePasswordAuthenticationFilter extends UsernamePassword
                 return new UsernamePasswordAuthenticationToken(authReq.getUsername(), authReq.getPassword());
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+        	   System.out.println(e.getMessage());
             throw new InternalAuthenticationServiceException("Failed to parse authentication request body");
         }
         return null;

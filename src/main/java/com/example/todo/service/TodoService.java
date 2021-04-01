@@ -10,6 +10,7 @@ import com.example.todo.exception.EntityNotPresentException;
 import com.example.todo.dao.TodoRepository;
 import com.example.todo.dao.UserRepository;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -39,7 +40,7 @@ public class TodoService {
 		
 		Todo todo = new Todo();
 		todo.setName(todoJson.getName());
-		todo.setUser(user);
+		todo.setUsers(Arrays.asList(user));
 		return todoRepo.save(todo);
 	}
 	
@@ -50,9 +51,8 @@ public class TodoService {
 		User authenticatedUser  = userRepo.findByUserName(username).orElseThrow(()->new EntityNotPresentException("User is not present"));
 		Todo todo = todoRepo.findById(id).orElseThrow(()->new EntityNotPresentException("Todo is not present"));
 		
-		if(!authenticatedUser.equals(todo.getUser())) {
-			throw new ActionNotAllowedException("Action Not Allowed");
-		}
+		todo.getUsers().stream().filter(user -> user.equals(authenticatedUser)).findFirst().orElseThrow(() -> new ActionNotAllowedException("Action Not Allowed")); 
+	
 		
 		todo.setName(todoJson.getName());
 		return todoRepo.save(todo);
@@ -65,9 +65,8 @@ public class TodoService {
 		User authenticatedUser  = userRepo.findByUserName(username).orElseThrow(()->new EntityNotPresentException("User is not present"));
 		Todo todo = todoRepo.findById(id).orElseThrow(()->new EntityNotPresentException("Todo is not present"));
 		
-		if(!authenticatedUser.equals(todo.getUser())) {
-			throw new ActionNotAllowedException("Action Not Allowed");
-		}
+		todo.getUsers().stream().filter(user -> user.equals(authenticatedUser)).findFirst().orElseThrow(() -> new ActionNotAllowedException("Action Not Allowed")); 
+		
 		return todo;
 	}
 	
@@ -79,9 +78,7 @@ public class TodoService {
 		User authenticatedUser  = userRepo.findByUserName(username).orElseThrow(()->new EntityNotPresentException("User is not present"));
 		Todo todo = todoRepo.findById(id).orElseThrow(()-> new EntityNotPresentException("Todo is not present"));
 		
-		if(!authenticatedUser.equals(todo.getUser())) {
-			throw new ActionNotAllowedException("Action Not Allowed");
-		}
+		todo.getUsers().stream().filter(user -> user.equals(authenticatedUser)).findFirst().orElseThrow(() -> new ActionNotAllowedException("Action Not Allowed")); 
 		
 		todo.setDeleted(true);
 		todoRepo.save(todo);
@@ -91,8 +88,11 @@ public class TodoService {
 		User user = userRepo.findById(userId).orElseThrow(()-> new EntityNotPresentException("User is not present"));
 		Todo todo = todoRepo.findById(todoId).orElseThrow(()-> new EntityNotPresentException("Todo is not present"));
 		
-		todo.setUser(user);
+		todo.getUsers().add(user);
+		user.getTodos().add(todo);
+		
 		todoRepo.save(todo);
+		userRepo.save(user);
 		
 	}
 	
